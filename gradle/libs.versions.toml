@@ -14,7 +14,7 @@ runtime = "1.9.1"
 uiToolingPreview = "1.9.1"
 uiTooling = "1.9.1"
 animationCore = "1.9.1"
-compose = "1.9.0"
+compose = "1.9.1"
 kermit = "2.0.8"
 
 
