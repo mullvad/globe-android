@@ -13,4 +13,3 @@ data class CameraPosition(
         const val DEFAULT_FIELD_OF_VIEW = 70f
     }
 }
-
