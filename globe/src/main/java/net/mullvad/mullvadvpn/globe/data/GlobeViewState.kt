@@ -9,14 +9,11 @@ class GlobeViewState(
     val globeColors: GlobeColors = GlobeColors.default(),
 ) {
     companion object {
-        fun default() = GlobeViewState(
-            CameraPosition(
-                latLong =
-                    LatLong(
-                        latitude = Latitude(0f),
-                        longitude = Longitude(0f)
-                    )
+        fun default() =
+            GlobeViewState(
+                CameraPosition(
+                    latLong = LatLong(latitude = Latitude(0f), longitude = Longitude(0f))
+                )
             )
-        )
     }
 }

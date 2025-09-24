@@ -29,9 +29,9 @@ internal class GlobeSurfaceView(context: Context) : GLSurfaceView(context) {
         // Create an OpenGL ES 2.0 context
         setEGLContextClientVersion(2)
 
-//        if (BuildConfig.DEBUG) {
-//            debugFlags = DEBUG_CHECK_GL_ERROR or DEBUG_LOG_GL_CALLS
-//        }
+        //        if (BuildConfig.DEBUG) {
+        //            debugFlags = DEBUG_CHECK_GL_ERROR or DEBUG_LOG_GL_CALLS
+        //        }
 
         // Set the Renderer for drawing on the GLSurfaceView
         setRenderer(renderer)

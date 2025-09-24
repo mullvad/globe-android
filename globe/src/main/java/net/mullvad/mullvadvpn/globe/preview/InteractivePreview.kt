@@ -2,12 +2,8 @@ package net.mullvad.mullvadvpn.globe.preview
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationEndReason
-import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.VectorConverter
-import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.exponentialDecay
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -32,6 +28,8 @@ import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.input.pointer.util.VelocityTracker1D
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Velocity
+import kotlin.math.PI
+import kotlin.math.abs
 import kotlinx.coroutines.launch
 import net.mullvad.mullvadvpn.globe.Globe
 import net.mullvad.mullvadvpn.globe.data.COMPLETE_ANGLE
@@ -42,13 +40,10 @@ import net.mullvad.mullvadvpn.globe.data.LocationMarkerColors
 import net.mullvad.mullvadvpn.globe.data.Longitude
 import net.mullvad.mullvadvpn.globe.data.Marker
 import net.mullvad.mullvadvpn.globe.toAnimationDurationMillis
-import kotlin.math.PI
-import kotlin.math.abs
 
 @Preview
 @Composable
-private fun InteractiveMapPreview(
-) {
+private fun InteractiveMapPreview() {
     // Starting position
     var selectedLocation by remember {
         // Berlin
@@ -56,14 +51,16 @@ private fun InteractiveMapPreview(
     }
 
     // Create some markers
-    val markers = locations.map {
-        Marker(
-            id = it.toString(),
-            latLong = it,
-            colors = if (it == selectedLocation) selectLocationMarkerColors
-            else unselectLocationMarkerColors,
-        )
-    }
+    val markers =
+        locations.map {
+            Marker(
+                id = it.toString(),
+                latLong = it,
+                colors =
+                    if (it == selectedLocation) selectLocationMarkerColors
+                    else unselectLocationMarkerColors,
+            )
+        }
     val zoomRange = 1.2f..2f
 
     val zoomAnimatable = remember {
@@ -72,12 +69,10 @@ private fun InteractiveMapPreview(
         }
     }
     val latLngAnimatable = remember {
-        Animatable(
-            selectedLocation.toOffset(), Offset.VectorConverter
-        ).also {
+        Animatable(selectedLocation.toOffset(), Offset.VectorConverter).also {
             it.updateBounds(
                 lowerBound = Offset(x = Float.NEGATIVE_INFINITY, y = -40f),
-                upperBound = Offset(x = Float.POSITIVE_INFINITY, y = 60f)
+                upperBound = Offset(x = Float.POSITIVE_INFINITY, y = 60f),
             )
         }
     }
@@ -89,10 +84,7 @@ private fun InteractiveMapPreview(
 
         launch {
             latLngAnimatable.snapTo(latLngAnimatable.value.unwind())
-            latLngAnimatable.animateTo(
-                selectedLocation.toOffset(),
-                animationSpec = tween(duration),
-            )
+            latLngAnimatable.animateTo(selectedLocation.toOffset(), animationSpec = tween(duration))
         }
         launch { zoomAnimatable.animateTo(zoomRange.start, animationSpec = tween(duration)) }
     }
@@ -118,9 +110,7 @@ private fun InteractiveMapPreview(
 
             val isZooming = zoomChange != 1f
             if (!isZooming) {
-                tracker.addPosition(
-                    System.currentTimeMillis(), latLngOffsetDiff
-                )
+                tracker.addPosition(System.currentTimeMillis(), latLngOffsetDiff)
             } else {
                 tracker.resetTracking()
             }
@@ -139,11 +129,11 @@ private fun InteractiveMapPreview(
             tracker.resetTracking()
 
             do {
-                val result = latLngAnimatable.animateDecay(
-                    Offset(
-                        longVelocity, latVelocity
-                    ), exponentialDecay(1f)
-                )
+                val result =
+                    latLngAnimatable.animateDecay(
+                        Offset(longVelocity, latVelocity),
+                        exponentialDecay(1f),
+                    )
 
                 longVelocity = result.endState.velocityVector.v1
                 latVelocity = -result.endState.velocityVector.v2
@@ -151,42 +141,40 @@ private fun InteractiveMapPreview(
 
             launch {
                 latLngAnimatable.animateTo(
-                    calculateClosestOffset(
-                        latLngAnimatable.value, selectedLocation.toOffset()
-                    ), tween(durationMillis = 1000, delayMillis = 3000)
+                    calculateClosestOffset(latLngAnimatable.value, selectedLocation.toOffset()),
+                    tween(durationMillis = 1000, delayMillis = 3000),
                 )
             }
-            launch {
-                zoomAnimatable.animateTo(
-                    zoomRange.start, tween(1000, delayMillis = 3000)
-                )
-            }
+            launch { zoomAnimatable.animateTo(zoomRange.start, tween(1000, delayMillis = 3000)) }
         }
     }
 
     Globe(
-        modifier = Modifier.pointerInput(Unit, {
-            detectTransformGesturesWithEnd(
-                true,
-                onGestureStart = onGestureStart,
-                onGesture = onGesture,
-                onGestureEnd = onGestureEnd,
-            )
-        }), cameraPosition = CameraPosition(
-            latLngAnimatable.value.toLatLng(), zoomAnimatable.value
-        ), markers = markers, onMarkerClick = { selectedLocation = it.latLong })
+        modifier =
+            Modifier.pointerInput(
+                Unit,
+                {
+                    detectTransformGesturesWithEnd(
+                        true,
+                        onGestureStart = onGestureStart,
+                        onGesture = onGesture,
+                        onGestureEnd = onGestureEnd,
+                    )
+                },
+            ),
+        cameraPosition = CameraPosition(latLngAnimatable.value.toLatLng(), zoomAnimatable.value),
+        markers = markers,
+        onMarkerClick = { selectedLocation = it.latLong },
+    )
 }
 
-private fun calculateLatLngPan(
-    pan: Offset, zoom: Float
-): Offset = Offset(x = -pan.x * zoom / 50f, pan.y * zoom / 40f)
+private fun calculateLatLngPan(pan: Offset, zoom: Float): Offset =
+    Offset(x = -pan.x * zoom / 50f, pan.y * zoom / 40f)
 
-private fun LatLong.toOffset(): Offset = Offset(
-    longitude.value,
-    latitude.value,
-)
+private fun LatLong.toOffset(): Offset = Offset(longitude.value, latitude.value)
 
 private fun Offset.unwind(): Offset = Offset(Longitude.unwind(x), Latitude.unwind(y))
+
 private fun Offset.toLatLng(): LatLong = LatLong(Latitude.fromFloat(y), Longitude.fromFloat(x))
 
 fun Float.closestTarget(target: Float): Float {
@@ -206,7 +194,6 @@ fun Float.closestTarget(target: Float): Float {
 
 fun calculateClosestOffset(current: Offset, target: Offset): Offset =
     Offset(current.x.closestTarget(target.x), target.y)
-
 
 suspend fun PointerInputScope.detectTransformGesturesWithEnd(
     panZoomLock: Boolean = false,
@@ -242,7 +229,11 @@ suspend fun PointerInputScope.detectTransformGesturesWithEnd(
                     val rotationMotion = abs(rotation * PI.toFloat() * centroidSize / 180f)
                     val panMotion = pan.getDistance()
 
-                    if (zoomMotion > touchSlop || rotationMotion > touchSlop || panMotion > touchSlop) {
+                    if (
+                        zoomMotion > touchSlop ||
+                            rotationMotion > touchSlop ||
+                            panMotion > touchSlop
+                    ) {
                         pastTouchSlop = true
                         lockedToPanZoom = panZoomLock && rotationMotion < touchSlop
                     }
@@ -270,12 +261,12 @@ suspend fun PointerInputScope.detectTransformGesturesWithEnd(
 private val selectLocationMarkerColors =
     LocationMarkerColors(centerColor = Color(0xFF44AD4D.toInt()))
 
-private val unselectLocationMarkerColors = LocationMarkerColors(
-    perimeterColors = null,
-    centerColor = Color(0xFF192E45.toInt()),
-    ringBorderColor = Color(0xFFFFFFFF.toInt()),
-)
-
+private val unselectLocationMarkerColors =
+    LocationMarkerColors(
+        perimeterColors = null,
+        centerColor = Color(0xFF192E45.toInt()),
+        ringBorderColor = Color(0xFFFFFFFF.toInt()),
+    )
 
 class DiffVelocityTracker {
     private val xVelocityTracker = VelocityTracker1D(true)
@@ -304,4 +295,3 @@ class DiffVelocityTracker {
         lastMoveEventTimeStamp = 0L
     }
 }
-

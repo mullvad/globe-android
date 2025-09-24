@@ -10,7 +10,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import net.mullvad.mullvadvpn.globe.data.CameraPosition
 import net.mullvad.mullvadvpn.globe.data.GlobeColors
-import net.mullvad.mullvadvpn.globe.data.LatLong
 import net.mullvad.mullvadvpn.globe.data.GlobeViewState
 import net.mullvad.mullvadvpn.globe.data.Marker
 import net.mullvad.mullvadvpn.globe.internal.GlobeSurfaceView
@@ -23,17 +22,11 @@ fun Globe(
     globeColors: GlobeColors = GlobeColors.default(),
 ) {
     val globeViewState = GlobeViewState(cameraPosition, markers, globeColors)
-    Globe(
-        modifier = modifier,
-        globeViewState = globeViewState
-    )
+    Globe(modifier = modifier, globeViewState = globeViewState)
 }
 
 @Composable
-private fun Globe(
-    modifier: Modifier = Modifier,
-    globeViewState: GlobeViewState,
-) {
+private fun Globe(modifier: Modifier = Modifier, globeViewState: GlobeViewState) {
     val lifeCycleState = LocalLifecycleOwner.current.lifecycle
 
     AndroidView(
@@ -47,7 +40,6 @@ private fun Globe(
     )
 }
 
-
 @Composable
 fun Globe(
     cameraPosition: CameraPosition,
@@ -58,12 +50,7 @@ fun Globe(
     onMarkerLongPress: (Offset, Marker) -> Unit = { _, _ -> },
 ) {
     val globeViewState = GlobeViewState(cameraPosition, markers, globeColors)
-    Globe(
-        modifier = modifier,
-        globeViewState = globeViewState,
-        onMarkerClick,
-        onMarkerLongPress,
-    )
+    Globe(modifier = modifier, globeViewState = globeViewState, onMarkerClick, onMarkerLongPress)
 }
 
 @Composable
@@ -78,20 +65,20 @@ private fun Globe(
     val lifeCycleState = LocalLifecycleOwner.current.lifecycle
 
     AndroidView(
-        modifier = Modifier
-            .pointerInput(lifeCycleState) {
-                detectTapGestures(
-                    onTap = {
-                        val result = view?.closestMarker(it) ?: return@detectTapGestures
-                        onClick(result.first)
-                    },
-                    onLongPress = {
-                        val result = view?.closestMarker(it) ?: return@detectTapGestures
-                        onLongClick(result.second, result.first)
-                    },
-                )
-            }
-            .then(modifier),
+        modifier =
+            Modifier.pointerInput(lifeCycleState) {
+                    detectTapGestures(
+                        onTap = {
+                            val result = view?.closestMarker(it) ?: return@detectTapGestures
+                            onClick(result.first)
+                        },
+                        onLongPress = {
+                            val result = view?.closestMarker(it) ?: return@detectTapGestures
+                            onLongClick(result.second, result.first)
+                        },
+                    )
+                }
+                .then(modifier),
         factory = { GlobeSurfaceView(it) },
         update = { glSurfaceView ->
             glSurfaceView.lifecycle = lifeCycleState

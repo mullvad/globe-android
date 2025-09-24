@@ -25,13 +25,18 @@ class MainActivity : ComponentActivity() {
         setContent {
             SampleTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-
                     Globe(
-                        modifier = Modifier.padding(innerPadding), cameraPosition = CameraPosition(
-                            latLong = LatLong(
-                                latitude = Latitude(57.7089f), longitude = Longitude(11.9746f)
-                            ), zoom = 3f, verticalBias = 0.5f
-                        )
+                        modifier = Modifier.padding(innerPadding),
+                        cameraPosition =
+                            CameraPosition(
+                                latLong =
+                                    LatLong(
+                                        latitude = Latitude(57.7089f),
+                                        longitude = Longitude(11.9746f),
+                                    ),
+                                zoom = 3f,
+                                verticalBias = 0.5f,
+                            ),
                     )
                 }
             }
@@ -41,15 +46,11 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!", modifier = modifier
-    )
+    Text(text = "Hello $name!", modifier = modifier)
 }
 
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
-    SampleTheme {
-        Greeting("Android")
-    }
+    SampleTheme { Greeting("Android") }
 }

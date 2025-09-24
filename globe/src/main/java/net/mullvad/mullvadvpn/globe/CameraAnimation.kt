@@ -12,15 +12,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.launch
 import net.mullvad.mullvadvpn.globe.data.CameraPosition
+import net.mullvad.mullvadvpn.globe.data.LatLong
+import net.mullvad.mullvadvpn.globe.data.Latitude
+import net.mullvad.mullvadvpn.globe.data.Longitude
 import net.mullvad.mullvadvpn.globe.internal.DISTANCE_DURATION_SCALE_FACTOR
 import net.mullvad.mullvadvpn.globe.internal.FAR_ANIMATION_MAX_ZOOM_MULTIPLIER
 import net.mullvad.mullvadvpn.globe.internal.MAX_ANIMATION_MILLIS
 import net.mullvad.mullvadvpn.globe.internal.MAX_MULTIPLIER_PEAK_TIMING
 import net.mullvad.mullvadvpn.globe.internal.MIN_ANIMATION_MILLIS
 import net.mullvad.mullvadvpn.globe.internal.SHORT_ANIMATION_CUTOFF_MILLIS
-import net.mullvad.mullvadvpn.globe.data.LatLong
-import net.mullvad.mullvadvpn.globe.data.Latitude
-import net.mullvad.mullvadvpn.globe.data.Longitude
 
 @Composable
 fun animatedCameraPosition(
@@ -77,8 +77,8 @@ fun animatedCameraPosition(
                         } else {
                             durationMillis = duration
                             FAR_ANIMATION_MAX_ZOOM_MULTIPLIER at
-                                    (duration * MAX_MULTIPLIER_PEAK_TIMING).toInt() using
-                                    EaseInOut
+                                (duration * MAX_MULTIPLIER_PEAK_TIMING).toInt() using
+                                EaseInOut
                             1f at duration using EaseInOut
                         }
                     },

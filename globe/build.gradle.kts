@@ -21,7 +21,7 @@ android {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
@@ -35,9 +35,7 @@ android {
         buildConfig = true
     }
 
-    kotlinOptions {
-        jvmTarget = "11"
-    }
+    kotlinOptions { jvmTarget = "11" }
 }
 
 dependencies {
@@ -61,7 +59,6 @@ afterEvaluate {
     publishing {
         publications {
             create<MavenPublication>("release") {
-
                 from(components["release"])
 
                 groupId = "net.mullvad.mullvadvpn.globe"

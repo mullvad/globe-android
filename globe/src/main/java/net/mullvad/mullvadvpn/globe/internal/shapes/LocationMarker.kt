@@ -6,13 +6,13 @@ import androidx.compose.ui.graphics.Color
 import java.nio.FloatBuffer
 import kotlin.math.cos
 import kotlin.math.sin
+import net.mullvad.mullvadvpn.globe.data.LatLong
 import net.mullvad.mullvadvpn.globe.data.LocationMarkerColors
 import net.mullvad.mullvadvpn.globe.internal.COLOR_COMPONENT_SIZE
 import net.mullvad.mullvadvpn.globe.internal.VERTEX_COMPONENT_SIZE
+import net.mullvad.mullvadvpn.globe.internal.initGLArrayBuffer
 import net.mullvad.mullvadvpn.globe.internal.initShaderProgram
 import net.mullvad.mullvadvpn.globe.internal.toFloatArray
-import net.mullvad.mullvadvpn.globe.data.LatLong
-import net.mullvad.mullvadvpn.globe.internal.initGLArrayBuffer
 
 internal class LocationMarker(val colors: LocationMarkerColors) {
 
@@ -216,28 +216,28 @@ internal class LocationMarker(val colors: LocationMarkerColors) {
         // Vertex, and fragment shader code is taken from Mullvad Desktop 3dmap.ts
         private val vertexShaderCode =
             """
-    attribute vec3 aVertexPosition;
-    attribute vec4 aVertexColor;
+            attribute vec3 aVertexPosition;
+            attribute vec4 aVertexColor;
 
-    uniform mat4 uModelViewMatrix;
-    uniform mat4 uProjectionMatrix;
+            uniform mat4 uModelViewMatrix;
+            uniform mat4 uProjectionMatrix;
 
-    varying lowp vec4 vColor;
+            varying lowp vec4 vColor;
 
-    void main(void) {
-        gl_Position = uProjectionMatrix * uModelViewMatrix * vec4(aVertexPosition, 1.0);
-        vColor = aVertexColor;
-    }
-        """
+            void main(void) {
+                gl_Position = uProjectionMatrix * uModelViewMatrix * vec4(aVertexPosition, 1.0);
+                vColor = aVertexColor;
+            }
+                """
                 .trimIndent()
         private val fragmentShaderCode =
             """
-    varying lowp vec4 vColor;
+            varying lowp vec4 vColor;
 
-    void main(void) {
-        gl_FragColor = vColor;
-    }
-        """
+            void main(void) {
+                gl_FragColor = vColor;
+            }
+                """
                 .trimIndent()
     }
 }

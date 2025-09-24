@@ -18,33 +18,28 @@ import net.mullvad.mullvadvpn.globe.data.Longitude
 @Composable
 private fun GlobePreview() {
     val berlin = LatLong(Latitude(52.5200f), Longitude(13.4050f))
-    Globe(
-        cameraPosition = CameraPosition(
-            latLong = berlin, zoom = 1.9f
-        )
-    )
+    Globe(cameraPosition = CameraPosition(latLong = berlin, zoom = 1.9f))
 }
 
 @Preview
 @Composable
 private fun SpinningGlobePreview() {
     val infinite = rememberInfiniteTransition()
-    val rawLongitude by infinite.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(
-                durationMillis = 30000, easing = LinearEasing
-            )
-        ),
-    )
+    val rawLongitude by
+        infinite.animateFloat(
+            initialValue = 0f,
+            targetValue = 360f,
+            animationSpec =
+                infiniteRepeatable(animation = tween(durationMillis = 30000, easing = LinearEasing)),
+        )
     val longitude = Longitude.fromFloat(rawLongitude)
 
     Globe(
-        cameraPosition = CameraPosition(
-            latLong = LatLong(Latitude(0f), longitude),
-            zoom = 1.9f,
-            verticalBias = 0.5f,
-        )
+        cameraPosition =
+            CameraPosition(
+                latLong = LatLong(Latitude(0f), longitude),
+                zoom = 1.9f,
+                verticalBias = 0.5f,
+            )
     )
 }

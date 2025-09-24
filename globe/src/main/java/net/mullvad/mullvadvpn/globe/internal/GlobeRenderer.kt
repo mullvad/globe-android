@@ -7,24 +7,24 @@ import android.opengl.Matrix
 import androidx.collection.LruCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import net.mullvad.mullvadvpn.globe.data.CameraPosition
-import net.mullvad.mullvadvpn.globe.data.LocationMarkerColors
-import net.mullvad.mullvadvpn.globe.data.GlobeViewState
-import net.mullvad.mullvadvpn.globe.data.Marker
-import net.mullvad.mullvadvpn.globe.data.toRadians
-import net.mullvad.mullvadvpn.globe.internal.shapes.Globe
-import net.mullvad.mullvadvpn.globe.internal.shapes.LocationMarker
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 import kotlin.math.pow
 import kotlin.math.sqrt
 import kotlin.math.tan
+import net.mullvad.mullvadvpn.globe.data.CameraPosition
+import net.mullvad.mullvadvpn.globe.data.GlobeViewState
+import net.mullvad.mullvadvpn.globe.data.LocationMarkerColors
+import net.mullvad.mullvadvpn.globe.data.Marker
 import net.mullvad.mullvadvpn.globe.data.Ray
 import net.mullvad.mullvadvpn.globe.data.Sphere
 import net.mullvad.mullvadvpn.globe.data.Vector3
 import net.mullvad.mullvadvpn.globe.data.rotateAroundX
 import net.mullvad.mullvadvpn.globe.data.rotateAroundY
+import net.mullvad.mullvadvpn.globe.data.toRadians
 import net.mullvad.mullvadvpn.globe.data.toVector3
+import net.mullvad.mullvadvpn.globe.internal.shapes.Globe
+import net.mullvad.mullvadvpn.globe.internal.shapes.LocationMarker
 
 internal class GlobeRenderer(private val resources: Resources) : GLSurfaceView.Renderer {
 
@@ -50,6 +50,7 @@ internal class GlobeRenderer(private val resources: Resources) : GLSurfaceView.R
             field = value
             markerVector = viewState.locationMarker.associateBy { it.latLong.toVector3() }
         }
+
     private val projectionMatrix = newIdentityMatrix()
 
     override fun onSurfaceCreated(unused: GL10, config: EGLConfig) {
