@@ -15,28 +15,6 @@ import net.mullvad.mullvadvpn.globe.data.GlobeViewState
 import net.mullvad.mullvadvpn.globe.data.Marker
 import net.mullvad.mullvadvpn.globe.internal.GlobeSurfaceView
 
-
-@Composable
-fun AnimatedGlobe(
-    modifier: Modifier,
-    cameraLocation: LatLong,
-    cameraBaseZoom: Float,
-    cameraVerticalBias: Float,
-    markers: List<Marker>,
-    globeColors: GlobeColors,
-) {
-    InteractiveGlobe(
-        modifier = modifier,
-        cameraPosition = animatedCameraPosition(
-            baseZoom = cameraBaseZoom,
-            targetCameraLocation = cameraLocation,
-            cameraVerticalBias = cameraVerticalBias,
-        ),
-        markers = markers,
-        globeColors = globeColors,
-    )
-}
-
 @Composable
 fun Globe(
     cameraPosition: CameraPosition,
@@ -52,7 +30,7 @@ fun Globe(
 }
 
 @Composable
-internal fun Globe(
+private fun Globe(
     modifier: Modifier = Modifier,
     globeViewState: GlobeViewState,
 ) {
@@ -71,7 +49,7 @@ internal fun Globe(
 
 
 @Composable
-fun InteractiveGlobe(
+fun Globe(
     cameraPosition: CameraPosition,
     modifier: Modifier = Modifier,
     markers: List<Marker> = emptyList(),
@@ -80,7 +58,7 @@ fun InteractiveGlobe(
     onMarkerLongPress: (Offset, Marker) -> Unit = { _, _ -> },
 ) {
     val globeViewState = GlobeViewState(cameraPosition, markers, globeColors)
-    InteractiveGlobe(
+    Globe(
         modifier = modifier,
         globeViewState = globeViewState,
         onMarkerClick,
@@ -89,7 +67,7 @@ fun InteractiveGlobe(
 }
 
 @Composable
-internal fun InteractiveGlobe(
+private fun Globe(
     modifier: Modifier = Modifier,
     globeViewState: GlobeViewState,
     onClick: (Marker) -> Unit = {},
