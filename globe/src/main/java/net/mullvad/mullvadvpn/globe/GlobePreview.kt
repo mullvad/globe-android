@@ -143,8 +143,7 @@ private fun InteractiveMapPreview(
                     onGesture = { centroid: Offset, pan: Offset, zoomChange: Float, rotation: Float ->
                         val currentPosition = latLngAnimatable.value
                         val zoom = zoomAnimatable.value
-
-                        val latLngOffsetDiff = Offset(x = -pan.x * zoom / 50f, pan.y * zoom / 40f)
+                        val latLngOffsetDiff = calculateLatLngPan(pan, zoom)
 
                         val newPosition = currentPosition + latLngOffsetDiff
                         val newZoom = (zoom + (1 - zoomChange) * 0.5f)
@@ -217,6 +216,11 @@ private fun InteractiveMapPreview(
         onMarkerClick = { selectedLocation = it.latLong }
     )
 }
+
+private fun calculateLatLngPan(
+    pan: Offset,
+    zoom: Float
+): Offset = Offset(x = -pan.x * zoom / 50f, pan.y * zoom / 40f)
 
 fun LatLong.toOffset(): Offset =
     Offset(
