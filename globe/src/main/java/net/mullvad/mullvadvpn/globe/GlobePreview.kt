@@ -32,8 +32,6 @@ import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.input.pointer.util.VelocityTracker1D
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Velocity
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.mullvad.mullvadvpn.globe.data.COMPLETE_ANGLE
 import net.mullvad.mullvadvpn.globe.data.CameraPosition
@@ -114,12 +112,7 @@ private fun InteractiveMapPreview(
         }
     }
 
-    // Job to return to selected location if stops interacting
-    var idleInteractionJob by remember { mutableStateOf<Job?>(null) }
-
     LaunchedEffect(selectedLocation) {
-        idleInteractionJob?.cancel()
-
         // Decide duration of animation based on distance
         val distance = selectedLocation.seppDistanceTo(latLngAnimatable.value.toLatLng())
         val duration = distance.toAnimationDurationMillis()
@@ -144,8 +137,6 @@ private fun InteractiveMapPreview(
                     true,
                     onGestureStart = {
                         tracker.resetTracking()
-                        idleInteractionJob?.cancel()
-                        idleInteractionJob = null
                         scope.launch { zoomAnimatable.stop() }
                         scope.launch { latLngAnimatable.stop() }
                     },
@@ -153,12 +144,9 @@ private fun InteractiveMapPreview(
                         val currentPosition = latLngAnimatable.value
                         val zoom = zoomAnimatable.value
 
-                        val longitudeDiff = pan.x * zoom / 50f
-                        val longitude = currentPosition.x - longitudeDiff
+                        val latLngOffsetDiff = Offset(x = -pan.x * zoom / 50f, pan.y * zoom / 40f)
 
-                        val latitudeDiff = pan.y * zoom / 40f
-                        val latitude = currentPosition.y + latitudeDiff
-
+                        val newPosition = currentPosition + latLngOffsetDiff
                         val newZoom = (zoom + (1 - zoomChange) * 0.5f)
 
                         val isZooming = zoomChange != 1f
@@ -166,7 +154,7 @@ private fun InteractiveMapPreview(
                         if (!isZooming) {
                             tracker.addPosition(
                                 System.currentTimeMillis(),
-                                Offset(longitudeDiff, latitudeDiff)
+                                latLngOffsetDiff
                             )
                         } else {
                             tracker.resetTracking()
@@ -174,7 +162,7 @@ private fun InteractiveMapPreview(
 
                         scope.launch {
                             latLngAnimatable.snapTo(
-                                Offset(longitude, latitude)
+                                newPosition
                             )
                         }
 
@@ -187,7 +175,7 @@ private fun InteractiveMapPreview(
                             val velocity = tracker.calculateVelocity()
 
                             var latVelocity = velocity.y
-                            var longVelocity = -velocity.x
+                            var longVelocity = velocity.x
 
                             do {
                                 val res = latLngAnimatable.animateDecay(
@@ -200,21 +188,21 @@ private fun InteractiveMapPreview(
                                 longVelocity = res.endState.velocityVector.v1
                                 latVelocity = -res.endState.velocityVector.v2
                             } while (res.endReason == AnimationEndReason.BoundReached)
-                        }
 
-                        idleInteractionJob = scope.launch {
-                            delay(3000)
                             launch {
                                 latLngAnimatable.animateTo(
                                     calculateClosestOffset(
                                         latLngAnimatable.value,
                                         selectedLocation.toOffset()
                                     ),
-                                    tween(1000)
+                                    tween(durationMillis = 1000, delayMillis = 3000)
                                 )
                             }
                             launch {
-                                zoomAnimatable.animateTo(zoomRange.start, tween(1000))
+                                zoomAnimatable.animateTo(
+                                    zoomRange.start,
+                                    tween(1000, delayMillis = 3000)
+                                )
                             }
                         }
                     },
