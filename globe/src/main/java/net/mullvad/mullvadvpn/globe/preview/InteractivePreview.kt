@@ -61,6 +61,8 @@ private fun InteractiveMapPreview() {
                     else unselectLocationMarkerColors,
             )
         }
+
+    // Range of zoom levels we can zoom to, so users don't get lost in space
     val zoomRange = 1.2f..2f
 
     val zoomAnimatable = remember {
@@ -101,33 +103,35 @@ private fun InteractiveMapPreview() {
 
     val onGesture: (Offset, Offset, Float, Float) -> Unit =
         { centroid: Offset, pan: Offset, zoomChange: Float, rotation: Float ->
+            // Calculate new camera position & zoom
             val currentPosition = latLngAnimatable.value
             val zoom = zoomAnimatable.value
-            val latLngOffsetDiff = calculateLatLngPan(pan, zoom)
 
+            val latLngOffsetDiff = calculateLatLngPan(pan, zoom)
             val newPosition = currentPosition + latLngOffsetDiff
+
             val newZoom = (zoom + (1 - zoomChange) * 0.5f)
 
+            // Update to the new position
+            scope.launch {
+                latLngAnimatable.snapTo(newPosition)
+                zoomAnimatable.snapTo(newZoom)
+            }
+
+            // Track the gesture to calculate velocity later
             val isZooming = zoomChange != 1f
             if (!isZooming) {
                 tracker.addPosition(System.currentTimeMillis(), latLngOffsetDiff)
             } else {
                 tracker.resetTracking()
             }
-
-            scope.launch {
-                latLngAnimatable.snapTo(newPosition)
-
-                if (isZooming) {
-                    zoomAnimatable.snapTo(newZoom)
-                }
-            }
         }
+
     val onGestureEnd: () -> Unit = {
         scope.launch {
+            // Fling the map based on velocity of the gesture
             var (longVelocity, latVelocity) = tracker.calculateVelocity()
             tracker.resetTracking()
-
             do {
                 val result =
                     latLngAnimatable.animateDecay(
@@ -139,13 +143,19 @@ private fun InteractiveMapPreview() {
                 latVelocity = -result.endState.velocityVector.v2
             } while (result.endReason == AnimationEndReason.BoundReached)
 
+            // Restore camera to the selected location if user doesn't select anything
             launch {
                 latLngAnimatable.animateTo(
                     calculateClosestOffset(latLngAnimatable.value, selectedLocation.toOffset()),
-                    tween(durationMillis = 1000, delayMillis = 3000),
+                    tween(1000, 2000),
                 )
             }
-            launch { zoomAnimatable.animateTo(zoomRange.start, tween(1000, delayMillis = 3000)) }
+            launch {
+                zoomAnimatable.animateTo(
+                    zoomRange.start,
+                    tween(1000, 2000)
+                )
+            }
         }
     }
 
@@ -231,8 +241,8 @@ suspend fun PointerInputScope.detectTransformGesturesWithEnd(
 
                     if (
                         zoomMotion > touchSlop ||
-                            rotationMotion > touchSlop ||
-                            panMotion > touchSlop
+                        rotationMotion > touchSlop ||
+                        panMotion > touchSlop
                     ) {
                         pastTouchSlop = true
                         lockedToPanZoom = panZoomLock && rotationMotion < touchSlop
