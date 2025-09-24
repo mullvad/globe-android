@@ -171,22 +171,19 @@ private fun InteractiveMapPreview(
                     },
                     onGestureEnd = {
                         scope.launch {
-                            val velocity = tracker.calculateVelocity()
-
-                            var latVelocity = velocity.y
-                            var longVelocity = velocity.x
+                            var (latVelocity, longVelocity) = tracker.calculateVelocity()
 
                             do {
-                                val res = latLngAnimatable.animateDecay(
+                                val result = latLngAnimatable.animateDecay(
                                     Offset(
                                         longVelocity,
                                         latVelocity
                                     ), exponentialDecay(1f)
                                 )
 
-                                longVelocity = res.endState.velocityVector.v1
-                                latVelocity = -res.endState.velocityVector.v2
-                            } while (res.endReason == AnimationEndReason.BoundReached)
+                                longVelocity = result.endState.velocityVector.v1
+                                latVelocity = -result.endState.velocityVector.v2
+                            } while (result.endReason == AnimationEndReason.BoundReached)
 
                             launch {
                                 latLngAnimatable.animateTo(
