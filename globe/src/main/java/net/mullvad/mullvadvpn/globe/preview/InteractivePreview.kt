@@ -45,7 +45,7 @@ import net.mullvad.mullvadvpn.globe.toAnimationDurationMillis
 @Composable
 private fun InteractiveMapPreview() {
     // Starting position
-    var selectedLocation by remember {
+    var currentLocation by remember {
         // Berlin
         mutableStateOf(locations[9])
     }
@@ -57,7 +57,7 @@ private fun InteractiveMapPreview() {
                 id = it.toString(),
                 latLong = it,
                 colors =
-                    if (it == selectedLocation) selectLocationMarkerColors
+                    if (it == currentLocation) selectLocationMarkerColors
                     else unselectLocationMarkerColors,
             )
         }
@@ -71,7 +71,7 @@ private fun InteractiveMapPreview() {
         }
     }
     val latLngAnimatable = remember {
-        Animatable(selectedLocation.toOffset(), Offset.VectorConverter).also {
+        Animatable(currentLocation.toOffset(), Offset.VectorConverter).also {
             it.updateBounds(
                 lowerBound = Offset(x = Float.NEGATIVE_INFINITY, y = -40f),
                 upperBound = Offset(x = Float.POSITIVE_INFINITY, y = 60f),
@@ -79,14 +79,14 @@ private fun InteractiveMapPreview() {
         }
     }
 
-    LaunchedEffect(selectedLocation) {
+    LaunchedEffect(currentLocation) {
         // Decide duration of animation based on distance
-        val distance = selectedLocation.seppDistanceTo(latLngAnimatable.value.toLatLng())
+        val distance = currentLocation.seppDistanceTo(latLngAnimatable.value.toLatLng())
         val duration = distance.toAnimationDurationMillis()
 
         launch {
             latLngAnimatable.snapTo(latLngAnimatable.value.unwind())
-            latLngAnimatable.animateTo(selectedLocation.toOffset(), animationSpec = tween(duration))
+            latLngAnimatable.animateTo(currentLocation.toOffset(), animationSpec = tween(duration))
         }
         launch { zoomAnimatable.animateTo(zoomRange.start, animationSpec = tween(duration)) }
     }
@@ -94,15 +94,8 @@ private fun InteractiveMapPreview() {
     val tracker = remember { DiffVelocityTracker() }
     val scope = rememberCoroutineScope()
 
-    val onGestureStart: () -> Unit = {
-        scope.launch {
-            latLngAnimatable.stop()
-            zoomAnimatable.stop()
-        }
-    }
-
     val onGesture: (Offset, Offset, Float, Float) -> Unit =
-        { centroid: Offset, pan: Offset, zoomChange: Float, rotation: Float ->
+        { _: Offset, pan: Offset, zoomChange: Float, _: Float ->
             // Calculate new camera position & zoom
             val currentPosition = latLngAnimatable.value
             val zoom = zoomAnimatable.value
@@ -146,7 +139,7 @@ private fun InteractiveMapPreview() {
             // Restore camera to the selected location if user doesn't select anything
             launch {
                 latLngAnimatable.animateTo(
-                    calculateClosestOffset(latLngAnimatable.value, selectedLocation.toOffset()),
+                    calculateClosestOffset(latLngAnimatable.value, currentLocation.toOffset()),
                     tween(1000, 2000),
                 )
             }
@@ -166,7 +159,6 @@ private fun InteractiveMapPreview() {
                 {
                     detectTransformGesturesWithEnd(
                         true,
-                        onGestureStart = onGestureStart,
                         onGesture = onGesture,
                         onGestureEnd = onGestureEnd,
                     )
@@ -174,7 +166,7 @@ private fun InteractiveMapPreview() {
             ),
         cameraPosition = CameraPosition(latLngAnimatable.value.toLatLng(), zoomAnimatable.value),
         markers = markers,
-        onMarkerClick = { selectedLocation = it.latLong },
+        onMarkerClick = { currentLocation = it.latLong },
     )
 }
 
@@ -207,7 +199,6 @@ fun calculateClosestOffset(current: Offset, target: Offset): Offset =
 
 suspend fun PointerInputScope.detectTransformGesturesWithEnd(
     panZoomLock: Boolean = false,
-    onGestureStart: () -> Unit,
     onGesture: (centroid: Offset, pan: Offset, zoom: Float, rotation: Float) -> Unit,
     onGestureEnd: () -> Unit,
 ) {
@@ -220,7 +211,6 @@ suspend fun PointerInputScope.detectTransformGesturesWithEnd(
         var lockedToPanZoom = false
 
         awaitFirstDown(requireUnconsumed = false)
-        onGestureStart()
         do {
             val event = awaitPointerEvent()
             val canceled = event.changes.any { it.isConsumed }
@@ -241,8 +231,8 @@ suspend fun PointerInputScope.detectTransformGesturesWithEnd(
 
                     if (
                         zoomMotion > touchSlop ||
-                        rotationMotion > touchSlop ||
-                        panMotion > touchSlop
+                            rotationMotion > touchSlop ||
+                            panMotion > touchSlop
                     ) {
                         pastTouchSlop = true
                         lockedToPanZoom = panZoomLock && rotationMotion < touchSlop
